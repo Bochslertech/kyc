@@ -315,6 +315,31 @@ shared (install) actor class Kyc(owner: Principal,record : Principal,newRecord :
             extensible = null;
         }
     };
+    public shared(msg) func icrc17_kyc_request_for_channel(channel : Channel,request: KYCCanisterRequest) : async KYCResult {
+        canistergeekLogger.logMessage(
+            "\nfunc_name: icrc17_kyc_request_for_channel"#
+            "\ncaller:"#debug_show(msg.caller)#
+            "\nchannel:"#debug_show(channel)#
+            "\nrequest:"#debug_show(request)#"\n\n"
+        );
+        let amlResult = _aml_check(request,channel);
+        let kycResult = _kyc_check(request.counterparty,channel);
+        canistergeekLogger.logMessage(
+            "\nfunc_name: icrc17_kyc_request_for_channel"#
+            "\ncaller:"#debug_show(msg.caller)#
+            "\nkcyResult:"#debug_show(kycResult)#
+            "\namlResult:"#debug_show(amlResult)#"\n\n"
+        );
+        return {
+            kyc = kycResult;
+            aml = amlResult.verificationResult;
+            token = amlResult.token;
+            amount = amlResult.amount;
+            message = null;//TODO
+            timeout = null;//TODO
+            extensible = null;
+        }
+    };
 
     //Notifications - The NFT canister will deduct the executed amount from the KYC cache upon a successful transaction. It will then notify the
     //KYC canister that the transaction executed. It is up to the KYC canister to manage state so that if the NFT canister asks for a clearance
@@ -336,21 +361,14 @@ shared (install) actor class Kyc(owner: Principal,record : Principal,newRecord :
         
     };
 
-    public shared(msg) func icrc17_kyc_notification2(notification: KYCNotification) : async () {
+    public shared(msg) func icrc17_kyc_notification_for_channel(channel : Channel,notification: KYCNotification) : () {
         canistergeekLogger.logMessage(
-            "\nfunc_name: icrc17_kyc_notification2"#
+            "\nfunc_name: icrc17_kyc_notification_for_channel"#
             "\ncaller:"#debug_show(msg.caller)#
+            "\nchannel:"#debug_show(channel)#
             "\nrequest:"#debug_show(notification)#"\n\n"
         );
-        switch(_routers.get(msg.caller)){
-            case (?channel){
-                _add_user_trade_amount(channel,notification);
-            };
-            case _ {
-                assert(false);
-            };
-        };
-        
+        _add_user_trade_amount(channel,notification);
     };
 
     func _add_user_trade_amount(channel : Channel,notification: KYCNotification) {

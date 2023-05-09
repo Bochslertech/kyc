@@ -107,6 +107,7 @@ module {
         #Yumi;
         #Co_owned;
         #Gold;
+        #Land;
     };
 
     public type Access = {
@@ -168,6 +169,7 @@ module {
             case (#Yumi) 0;
             case (#Co_owned) 1;
             case (#Gold) 2;
+            case (#Land) 3;
         };
     };
 
